@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Tic-Tac-Toe with Dark Mode</title>
+    <style>body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #e0e0e0;
+    transition: background-color 0.5s ease;
+}
+
+body.dark-mode {
+    background: #121212;
+}
+
+.container {
+    text-align: center;
+    background: #ffffff;
+    padding: 40px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.container.dark-mode {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+h1.dark-mode {
+    color: #ffffff;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.player {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.game-container {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 10px;
+    margin: 0 auto 20px;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.cell:hover {
+    background-color: #e3e3e3;
+    transform: scale(1.05);
+}
+
+.cell.X {
+    color: #3498db;
+}
+
+.cell.O {
+    color: #e74c3c;
+}
+
+body.dark-mode .cell {
+    background-color: #3a3a3a;
+}
+
+.cell:hover.dark-mode {
+    background-color: #555;
+}
+
+#status {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #666;
+}
+
+#status.dark-mode {
+    color: #cccccc;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+body.dark-mode button {
+    background-color: #555;
+}
+
+body.dark-mode button:hover {
+    background-color: #777;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+}</style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tic-Tac-Toe</h1>
+
+        <div class="scoreboard">
+            <div class="player" id="playerX">Player X: <span id="scoreX">0</span></div>
+            <div class="player" id="playerO">Player O: <span id="scoreO">0</span></div>
+        </div>
+
+        <div class="game-container">
+            <div class="cell" id="cell-0" onclick="makeMove(0)"></div>
+            <div class="cell" id="cell-1" onclick="makeMove(1)"></div>
+            <div class="cell" id="cell-2" onclick="makeMove(2)"></div>
+            <div class="cell" id="cell-3" onclick="makeMove(3)"></div>
+            <div class="cell" id="cell-4" onclick="makeMove(4)"></div>
+            <div class="cell" id="cell-5" onclick="makeMove(5)"></div>
+            <div class="cell" id="cell-6" onclick="makeMove(6)"></div>
+            <div class="cell" id="cell-7" onclick="makeMove(7)"></div>
+            <div class="cell" id="cell-8" onclick="makeMove(8)"></div>
+        </div>
+
+        <h2 id="status">It's X's turn</h2>
+
+        <div class="buttons">
+            <button onclick="resetScore()">Reset Score</button>
+            <button id="darkModeToggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        </div>
+    </div>
+
+    <script>let board = ["", "", "", "", "", "", "", "", ""];
+let currentPlayer = "X";
+let gameActive = true;
+let scoreX = 0;
+let scoreO = 0;
+
+const statusDisplay = document.getElementById("status");
+const scoreDisplayX = document.getElementById("scoreX");
+const scoreDisplayO = document.getElementById("scoreO");
+
+const winningConditions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+
+// Function to handle results
+function handleResultValidation() {
+    let roundWon = false;
+    for (let i = 0; i < winningConditions.length; i++) {
+        const winCondition = winningConditions[i];
+        let a = board[winCondition[0]];
+        let b = board[winCondition[1]];
+        let c = board[winCondition[2]];
+        if (a === "" || b === "" || c === "") {
+            continue;
+        }
+        if (a === b && b === c) {
+            roundWon = true;
+            break;
+        }
+    }
+
+    if (roundWon) {
+        statusDisplay.innerHTML = `Player ${currentPlayer} has won!`;
+        updateScore();
+        gameActive = false;
+
+        // Automatically restart game after 2 seconds
+        setTimeout(restartGame, 2000);
+        return;
+    }
+
+    let roundDraw = !board.includes("");
+    if (roundDraw) {
+        statusDisplay.innerHTML = "Game ended in a draw!";
+        gameActive = false;
+
+        // Automatically restart game after 2 seconds
+        setTimeout(restartGame, 2000);
+        return;
+    }
+
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    statusDisplay.innerHTML = `It's ${currentPlayer}'s turn`;
+}
+
+// Function to make a move
+function makeMove(index) {
+    if (board[index] === "" && gameActive) {
+        board[index] = currentPlayer;
+        const cell = document.getElementById(`cell-${index}`);
+        cell.innerHTML = currentPlayer;
+        cell.classList.add(currentPlayer);
+        handleResultValidation();
+    }
+}
+
+// Function to restart the game
+function restartGame() {
+    board = ["", "", "", "", "", "", "", "", ""];
+    gameActive = true;
+    currentPlayer = "X";
+    statusDisplay.innerHTML = `It's ${currentPlayer}'s turn`;
+    document.querySelectorAll(".cell").forEach(cell => {
+        cell.innerHTML = "";
+        cell.classList.remove("X", "O");
+    });
+}
+
+// Function to update score
+function updateScore() {
+    if (currentPlayer === "X") {
+        scoreX++;
+        scoreDisplayX.innerHTML = scoreX;
+    } else {
+        scoreO++;
+        scoreDisplayO.innerHTML = scoreO;
+    }
+}
+
+// Function to reset score
+function resetScore() {
+    scoreX = 0;
+    scoreO = 0;
+    scoreDisplayX.innerHTML = scoreX;
+    scoreDisplayO.innerHTML = scoreO;
+    restartGame();
+}
+
+// Function to toggle dark mode
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+}</script>
+</body>
+</html>
